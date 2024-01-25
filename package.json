@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "esbuild --bundle --minify --outdir=dist"
+  },
+  "dependencies": {
+    "esbuild": "^0.19.12",
+    "glicko2-lite": "^4.0.0"
+  }
+}
