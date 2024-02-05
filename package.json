@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "build": "esbuild --bundle --minify --outdir=dist"
+    "build": "node build.js"
   },
   "dependencies": {
+    "@electron/asar": "^3.2.8",
     "esbuild": "^0.19.12",
     "glicko2-lite": "^4.0.0"
   }
