@@ -266,8 +266,8 @@ window.addEventListener('load', async function () {
       if (mainUserData.data.user.league.glicko && selfUserData.data.user.league.glicko) {
         let lostChange = glicko2(selfUserData.data.user.league.glicko, selfUserData.data.user.league.rd, 0.06, [[mainUserData.data.user.league.glicko, mainUserData.data.user.league.rd, 0]]);
         let winChange = glicko2(selfUserData.data.user.league.glicko, selfUserData.data.user.league.rd, 0.06, [[mainUserData.data.user.league.glicko, mainUserData.data.user.league.rd, 1]]);
-        addTrait(`WIN REWARD: ${(glickoToTR(winChange.rating, winChange.rd) - selfUserData.data.user.league.rating).toFixed(2)}TR`, "", "#b6b3f4")
-        addTrait(`LOSE REWARD: ${(glickoToTR(lostChange.rating, lostChange.rd) - selfUserData.data.user.league.rating).toFixed(2)}TR`, "", "#f4b6b3")
+        addTrait(`WIN REWARD: ${(max(glickoToTR(winChange.rating, winChange.rd) - selfUserData.data.user.league.rating, 0)).toFixed(2)}TR`, "", "#b6b3f4")
+        addTrait(`LOSE REWARD: ${(min(glickoToTR(lostChange.rating, lostChange.rd) - selfUserData.data.user.league.rating), 0).toFixed(2)}TR`, "", "#f4b6b3")
       }
 
       if (mainUserDataHistory.data.records[0].endcontext[0].username == user) {
