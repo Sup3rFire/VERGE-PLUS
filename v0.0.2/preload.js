@@ -2,42 +2,34 @@
 
 // Config
 const VERSION = "0.0.2";
-const PLATFORM = "browser";
+const PLATFORM = "desktop";
+
+const glicko2 = require("glicko2-lite");
 
 const cache = new Map();
 
 // Some useful functions
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
 async function getData(req) {
-  const url = "https://ch.tetr.io/api/";
-  const timeoutDelay = 1000;
-  try {
-    let cacheData = cache.get(req);
-    if (!!cacheData) {
-      cacheData = await Promise.resolve(cacheData);
-      if (cacheData.success && new Date().getTime() < cacheData.cache.cached_until)
-        return cacheData;
-    }
-    let data = (fetch(url + req)).then((res) => res.json());
-
-    cache.set(req, data);
-
-    return data;
-  } catch (error) {
-    console.log("Retrying request in " + timeoutDelay + "ms.");
-    await delay(timeoutDelay);
-    return await getData(req);
+  let cacheData = cache.get(req);
+  if (!!cacheData) {
+    cacheData = await Promise.resolve(cacheData);
+    if (cacheData.success && new Date().getTime() < cacheData.cache.cached_until)
+      return cacheData;
   }
+  const url = "https://ch.tetr.io/api/"
+  let data = (fetch(url + req)).then((res) => res.json());
 
+  cache.set(req, data);
+
+  return data;
 }
 function stringify(json) {
-  var data = JSON.stringify(json);
+  let data = JSON.stringify(json);
   return data.replace(/"/g, "");
 }
 
 function calculatePercentile(value, array) {
-  for (var i = 0; i < array.length; i++) {
+  for (let i = 0; i < array.length; i++) {
     if (value < array[i]) {
       return 100 * i / array.length;
     }
@@ -49,32 +41,28 @@ function calculatePercentile(value, array) {
 // We breaching the mainframe with this one 🔥🔥🔥
 // console.log("Injected Verge sucessfully");
 
-
-
+function glickoToTR(glicko, rd) {
+  let divisor = 1 + Math.pow(10, (1500 - glicko) * Math.PI / Math.sqrt(3 * Math.LN10 * Math.LN10 * rd * rd + 2500 * (64 * Math.PI * Math.PI + 147 * Math.LN10 * Math.LN10)));
+  return 25000 / divisor;
+}
 
 window.addEventListener('load', async function () {
   const dialogsNode = document.getElementById("dialogs");
   const config = { attributes: true, childList: true, subtree: true };
 
-  // Fetch the update url
   async function checkUpdate() {
     const updateURL = "https://raw.githubusercontent.com/MrMeCoding/TETR-VERGE/main/version"
-    var data = await (await fetch(updateURL)).json();
+    let data = await (await fetch(updateURL)).json();
     return data;
   }
-  var updateData = await checkUpdate();
-
-
-
-
+  let updateData = await checkUpdate();
 
   // This detects when the user opens someone's profile
-  var dialogsObserver = new MutationObserver(mutations => {
+  let dialogsObserver = new MutationObserver(mutations => {
     // Only trigger if the dialogs div is empty
     if (document.getElementsByClassName("tetra_tag_holder").length != 1) {
       return;
     }
-
 
     let usernameNode;
 
@@ -89,6 +77,7 @@ window.addEventListener('load', async function () {
         }
       }
     }
+
     function addTrait(value, description, color, id) {
       // Create the tag
       let tag = document.createElement("div");
@@ -125,25 +114,24 @@ window.addEventListener('load', async function () {
         document.getElementsByClassName("tetra_tag_holder")[document.getElementsByClassName("tetra_tag_holder").length - 1].insertBefore(tag, document.getElementsByClassName("tetra_tag_holder")[document.getElementsByClassName("tetra_tag_holder").length - 1].getElementsByTagName("br")[0]);
 
       }
-
-
     }
+
+    getData("users/lists/league/all");
 
     async function calculateUserStats() {
       // Get the big tetra league data
-      let tlDataPromise = getData("users/lists/league/all")
-      var tStart = Date.now();
+      let tlDataPromise = getData("users/lists/league/all");
+      let tStart = Date.now();
       if (!usernameNode) {
         return;
       }
       addTrait("TETR.IO VERGE IS LOADING. . .", "This may take up to 5 seconds depending on your internet connection and TETR.IO API response times.", "#b3f4b6", "loading");
 
 
-      var user = (usernameNode.textContent).toLowerCase();
+      let user = (usernameNode.textContent).toLowerCase();
       // console.log(user)
       // Get the user's data 
-      let mainUserDataPromise = getData("users/" + user);
-      let mainUserData = await mainUserDataPromise;
+      let [mainUserData, selfUserData] = await Promise.all([getData("users/" + user), getData("users/" + localStorage.getItem("tetrio_userID"))]);
 
       // Get the user's tetra league history
       let mainUserDataHistoryPromise = getData("streams/league_userrecent_" + mainUserData.data.user._id);
@@ -156,15 +144,15 @@ window.addEventListener('load', async function () {
       // This is the better version of tlData
       let tlUsers = tlData.data.users;
 
-      if (!tlData.success || !mainUserData.success || !mainUserDataHistory.data.records.length || user == "sthantom") {
+      if (!tlData.success || !mainUserData.success || !mainUserDataHistory.data.records.length) {
         console.warn("User data is either non-existent or could not be fetched.")
         document.getElementById("loading").textContent = "USER TETRA LEAGUE DATA CANNOT BE FOUND";
         document.getElementById("loading").title = "Party's over. . . This can happen if the user hasn't played any tetra league games.";
         return;
       }
 
-      var mainUserMatchHistory = [];
-      var mainUserOpponents = []
+      let mainUserMatchHistory = [];
+      let mainUserOpponents = []
       for (let i = 0; i < mainUserDataHistory.data.records.length; i++) {
         if (mainUserDataHistory.data.records[i].endcontext[0].username == user) {
           mainUserMatchHistory.push(true);
@@ -178,10 +166,7 @@ window.addEventListener('load', async function () {
       // console.log(mainUserMatchHistory);
       // console.log(mainUserOpponents);
 
-      // Contribution by Sup3rFire, thanks! 
-      var mainUserMatchHistoryData = await Promise.all(mainUserOpponents.map((user) => getData("users/" + user)));
-
-
+      let mainUserMatchHistoryData = await Promise.all(mainUserOpponents.map((user) => getData("users/" + user)));
       // console.log(mainUserMatchHistoryData);
 
       // console.log("User data fetched in " + (Date.now() - tStart) / 1000 + " seconds!")
@@ -189,16 +174,16 @@ window.addEventListener('load', async function () {
       tStart = Date.now();
 
 
-      var pps = [];
-      var apm = [];
-      var vs = [];
-      var tr = [];
+      let pps = [];
+      let apm = [];
+      let vs = [];
+      let tr = [];
 
       // -0.4055 is the secret formula ;)
-      var skillGroupRange = Math.round((-0.4055 * ((mainUserData.data.user.league.percentile) ** 2 - mainUserData.data.user.league.percentile)) * tlUsers.length + 10)
+      let skillGroupRange = Math.round((-0.4055 * ((mainUserData.data.user.league.percentile) ** 2 - mainUserData.data.user.league.percentile)) * tlUsers.length + 10)
 
-      var lowerSkillGroup = (mainUserData.data.user.league.standing - 1 + skillGroupRange) < tlUsers.length ? (mainUserData.data.user.league.standing - 1 + skillGroupRange) : tlUsers.length;
-      var upperSkillGroup = (mainUserData.data.user.league.standing - 1 - skillGroupRange) > 0 ? (mainUserData.data.user.league.standing - 1 - skillGroupRange) : 0;
+      let lowerSkillGroup = (mainUserData.data.user.league.standing - 1 + skillGroupRange) < tlUsers.length ? (mainUserData.data.user.league.standing - 1 + skillGroupRange) : tlUsers.length;
+      let upperSkillGroup = (mainUserData.data.user.league.standing - 1 - skillGroupRange) > 0 ? (mainUserData.data.user.league.standing - 1 - skillGroupRange) : 0;
 
       // console.log("Sample size: " + (lowerSkillGroup - upperSkillGroup) + " players");
       // console.log(upperSkillGroup)
@@ -206,7 +191,7 @@ window.addEventListener('load', async function () {
       // console.log(skillGroupRange);
 
       // console.log(mainUserData.data.user.league.percentile);
-      for (var i = upperSkillGroup; i < lowerSkillGroup; i++) {
+      for (let i = upperSkillGroup; i < lowerSkillGroup; i++) {
         pps.push(tlUsers[i].league.pps);
         apm.push(tlUsers[i].league.apm);
         vs.push(tlUsers[i].league.vs);
@@ -218,36 +203,36 @@ window.addEventListener('load', async function () {
       vs.sort(function (a, b) { return a - b });
       tr.sort(function (a, b) { return a - b });
 
-      var userPps = mainUserData.data.user.league.pps;
-      var userApm = mainUserData.data.user.league.apm;
-      var userVs = mainUserData.data.user.league.vs;
-      //var userTr = mainUserData.data.user.league.rating;
-      var userApp = userApm / 60 / userPps;
-      var userVsapm = userVs / userApm;
-      var userDsps = userVs / 100 - userApm / 60;
-      var userDspp = userDsps / userPps;
-      var userGe = 2 * userApp * userDsps / userPps
+      let userPps = mainUserData.data.user.league.pps;
+      let userApm = mainUserData.data.user.league.apm;
+      let userVs = mainUserData.data.user.league.vs;
+      //let userTr = mainUserData.data.user.league.rating;
+      let userApp = userApm / 60 / userPps;
+      let userVsapm = userVs / userApm;
+      let userDsps = userVs / 100 - userApm / 60;
+      let userDspp = userDsps / userPps;
+      let userGe = 2 * userApp * userDsps / userPps
 
       // Thanks to sheetbot's creators for the formulas below!! I can't thank you enough <3
 
-      var srarea = (userApm * 0) + (userPps * 135) + (userVs * 0) + (userApp * 290) + (userDsps * 0) + (userDspp * 700) + (userGe * 0);
-      var statrank = 11.2 * Math.atan((srarea - 93) / 130) + 1
+      let srarea = (userApm * 0) + (userPps * 135) + (userVs * 0) + (userApp * 290) + (userDsps * 0) + (userDspp * 700) + (userGe * 0);
+      let statrank = 11.2 * Math.atan((srarea - 93) / 130) + 1
 
 
 
       // console.log("Current user: " + mainUserData.data.user.username);
 
 
-      var goodMood = 0;
-      var badMood = 0;
-      var overConfident = 0;
-      var vengeance = 0;
-      var wins = 0;
-      var losses = 0;
+      let goodMood = 0;
+      let badMood = 0;
+      let overConfident = 0;
+      let vengeance = 0;
+      let wins = 0;
+      let losses = 0;
 
-      var precision = 3;
+      let precision = 3;
 
-      for (var i = 0; i < mainUserDataHistory.data.records.length - 1; i++) {
+      for (let i = 0; i < mainUserDataHistory.data.records.length - 1; i++) {
         // If the user won the match and the previous match, increment good mood score
         if ((mainUserDataHistory.data.records[i].endcontext[0].username == user) && (mainUserDataHistory.data.records[i + 1].endcontext[0].username == user)) {
           goodMood++;
@@ -269,34 +254,21 @@ window.addEventListener('load', async function () {
         }
       }
 
-      var goodMoodScore = goodMood / (goodMood + overConfident);
-      var badMoodScore = badMood / (badMood + vengeance);
-      var overConfidentScore = overConfident / (overConfident + goodMood);
-      var vengeanceScore = vengeance / (vengeance + badMood);
+      let goodMoodScore = goodMood / (goodMood + overConfident);
+      let badMoodScore = badMood / (badMood + vengeance);
+      let overConfidentScore = overConfident / (overConfident + goodMood);
+      let vengeanceScore = vengeance / (vengeance + badMood);
 
       // Remove loading tag
       document.getElementById("loading").remove();
 
-      // Custom tags
-      if (mainUserData.data.user._id == "643fe1195290461b4c184095") {
-        addTrait("GOLDEN RATIO", "A painter meets their subject eye to eye.", "#F3F4B3");
-
-      } else if (mainUserData.data.user._id == "62a78e80dea07bce363aa343") {
-        addTrait("GIRL!", "Girl!", "#F3F4B3");
-      } else if (mainUserData.data.user._id == "636865c4f9ffbe7fac583f41") {
-        if (Math.random() > 0.5) {
-          addTrait("GIRL!", "Girl!", "#F3F4B3");
-        }
-      } else if (mainUserData.data.user._id == "5ee9bfa12738825f8bf29b01") {
-        addTrait("ALMOST KYRA", "We are not the same.", "#F3F4B3");
-      } else if (mainUserData.data.user._id == "61716f3de09631548041968d") {
-        addTrait("BAD RNG", "This user has abysmally low RNG.", "#f4b6b3");
-      } else if (mainUserData.data.user._id == "60638e856aab4f0c1a1e8d03") {
-        addTrait("UMBREON", "This user mains misdrop cannon.", "f4b6b3");
-      } else if (mainUserData.data.user._id == "61b544b1e9c8d503799ba8e7") {
-        addTrait("MOON", "This user combos a lot.", "F3F4B3");
+      // Glicko Calculation
+      if (mainUserData.data.user.league.glicko && selfUserData.data.user.league.glicko) {
+        let lostChange = glicko2(selfUserData.data.user.league.glicko, selfUserData.data.user.league.rd, 0.06, [[mainUserData.data.user.league.glicko, mainUserData.data.user.league.rd, 0]]);
+        let winChange = glicko2(selfUserData.data.user.league.glicko, selfUserData.data.user.league.rd, 0.06, [[mainUserData.data.user.league.glicko, mainUserData.data.user.league.rd, 1]]);
+        addTrait(`WIN REWARD: ${(glickoToTR(winChange.rating, winChange.rd) - selfUserData.data.user.league.rating).toFixed(2)}TR`, "", "#b6b3f4")
+        addTrait(`LOSE REWARD: ${(glickoToTR(lostChange.rating, lostChange.rd) - selfUserData.data.user.league.rating).toFixed(2)}TR`, "", "#f4b6b3")
       }
-
 
       if (mainUserDataHistory.data.records[0].endcontext[0].username == user) {
 
@@ -342,18 +314,18 @@ window.addEventListener('load', async function () {
         addTrait("LOW VS", "This user has a low average VS compared to other players (Bottom " + calculatePercentile(userVs, vs).toFixed(precision) + " %)", "#f4b6b3");
       }
 
-      var openerScore = Number(Number(Number((((userApm / srarea) / ((0.069 * 1.0017 ** ((statrank ** 5) / 4700)) + statrank / 360) - 1) + (((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) * 0.75) + (((userVsapm / (-(((statrank - 16) / 36) ** 2) + 2.133) - 1)) * -10) + ((userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) * 0.75) + ((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) * -0.25)) / 3.5) + 0.5).toFixed(4))
-      var plonkScore = Number(Number((((userGe / (statrank / 350 + 0.005948424455 * 3.8 ** ((statrank - 6.1) / 4) + 0.006) - 1) + (userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) + ((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) * 0.75) + (((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) * -1)) / 2.73) + 0.5).toFixed(4))
-      var strideScore = Number(Number((((((userApm / srarea) / ((0.069 * 1.0017 ** ((statrank ** 5) / 4700)) + statrank / 360) - 1) * -0.25) + ((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) + ((userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) * -2) + ((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) * -0.5)) * 0.79) + 0.5).toFixed(4))
-      var infdsScore = Number(Number((((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) + ((userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) * -0.75) + (((userApm / srarea) / ((0.069 * 1.0017 ** ((statrank ** 5) / 4700)) + statrank / 360) - 1) * 0.5) + ((userVsapm / (-(((statrank - 16) / 36) ** 2) + 2.133) - 1) * 1.5) + (((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) * 0.5)) * 0.9) + 0.5).toFixed(4))
+      let openerScore = Number(Number(Number((((userApm / srarea) / ((0.069 * 1.0017 ** ((statrank ** 5) / 4700)) + statrank / 360) - 1) + (((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) * 0.75) + (((userVsapm / (-(((statrank - 16) / 36) ** 2) + 2.133) - 1)) * -10) + ((userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) * 0.75) + ((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) * -0.25)) / 3.5) + 0.5).toFixed(4))
+      let plonkScore = Number(Number((((userGe / (statrank / 350 + 0.005948424455 * 3.8 ** ((statrank - 6.1) / 4) + 0.006) - 1) + (userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) + ((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) * 0.75) + (((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) * -1)) / 2.73) + 0.5).toFixed(4))
+      let strideScore = Number(Number((((((userApm / srarea) / ((0.069 * 1.0017 ** ((statrank ** 5) / 4700)) + statrank / 360) - 1) * -0.25) + ((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) + ((userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) * -2) + ((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) * -0.5)) * 0.79) + 0.5).toFixed(4))
+      let infdsScore = Number(Number((((userDspp / (0.02136327583 * (14 ** ((statrank - 14.75) / 3.9)) + statrank / 152 + 0.022) - 1) + ((userApp / (0.1368803292 * 1.0024 ** ((statrank ** 5) / 2800) + statrank / 54) - 1) * -0.75) + (((userApm / srarea) / ((0.069 * 1.0017 ** ((statrank ** 5) / 4700)) + statrank / 360) - 1) * 0.5) + ((userVsapm / (-(((statrank - 16) / 36) ** 2) + 2.133) - 1) * 1.5) + (((userPps / srarea) / (0.0084264 * (2.14 ** (-2 * (statrank / 2.7 + 1.03))) - statrank / 5750 + 0.0067) - 1) * 0.5)) * 0.9) + 0.5).toFixed(4))
 
-      var playstyle = [openerScore, plonkScore, strideScore, infdsScore];
+      let playstyle = [openerScore, plonkScore, strideScore, infdsScore];
 
-      var descriptions = [{ title: "OPENER", description: "This user is likely an opener main" }, { title: "PLONKER", description: "This user is likely a plonker" }, { title: "STRIDER", description: "This user is likely a strider" }, { title: "INF DS'ER", description: "This user is likely an infnite downstacker" }]
+      let descriptions = [{ title: "OPENER", description: "This user is likely an opener main" }, { title: "PLONKER", description: "This user is likely a plonker" }, { title: "STRIDER", description: "This user is likely a strider" }, { title: "INF DS'ER", description: "This user is likely an infnite downstacker" }]
 
-      var mainPlaystyle = playstyle.indexOf(Math.max(...playstyle));
+      let mainPlaystyle = playstyle.indexOf(Math.max(...playstyle));
       playstyle[mainPlaystyle] = -playstyle[mainPlaystyle];
-      var secondaryPlaystyle = playstyle[playstyle.indexOf(Math.max(...playstyle))] > -0.75 * playstyle[mainPlaystyle] ? playstyle.indexOf(Math.max(...playstyle)) : undefined;
+      let secondaryPlaystyle = playstyle[playstyle.indexOf(Math.max(...playstyle))] > -0.75 * playstyle[mainPlaystyle] ? playstyle.indexOf(Math.max(...playstyle)) : undefined;
 
       // console.log(secondaryPlaystyle)
       // console.log(mainPlaystyle);
@@ -367,7 +339,7 @@ window.addEventListener('load', async function () {
       // console.log("Stride score: " + strideScore);
       // console.log("Infds score: " + infdsScore);
 
-      var playstyleWinrate = [{ wins: 0, played: 0 }, { wins: 0, played: 0 }, { wins: 0, played: 0 }, { wins: 0, played: 0 }];
+      let playstyleWinrate = [{ wins: 0, played: 0 }, { wins: 0, played: 0 }, { wins: 0, played: 0 }, { wins: 0, played: 0 }];
 
       for (let i = 0; i < mainUserMatchHistoryData.length; i++) {
         let userPps = mainUserMatchHistoryData[i].data.user.league.pps;
@@ -407,7 +379,7 @@ window.addEventListener('load', async function () {
       // TODO: Optimize it. Too bad!
 
       // console.log(playstyleWinrate);
-      var playstyleWinrateDescriptions = ["openers", "plonkers", "striders", "inf ds'ers"]
+      let playstyleWinrateDescriptions = ["openers", "plonkers", "striders", "inf ds'ers"]
       for (let i = 0; i < playstyleWinrate.length; i++) {
         if (playstyleWinrate[i].wins / playstyleWinrate[i].played > 0.65) {
           addTrait("WINS AGAINST " + playstyleWinrateDescriptions[i].toUpperCase(), "This user has a high winrate against " + playstyleWinrateDescriptions[i] + ". (Winrate " + (100 * playstyleWinrate[i].wins / playstyleWinrate[i].played).toFixed(precision) + "%)", "#b6b3f4")
@@ -425,14 +397,12 @@ window.addEventListener('load', async function () {
     }
 
     calculateUserStats();
-
-
   });
 
   // This detects when the page is loaded
   dialogsObserver.observe(dialogsNode, config);
 
-  var loadedObserver = new MutationObserver(mutations => {
+  let loadedObserver = new MutationObserver(mutations => {
 
     if (stringify(updateData.version) != VERSION && document.documentElement.getAttribute("style")) {
 
@@ -480,11 +450,7 @@ window.addEventListener('load', async function () {
         windowsInputCode.style.width = "97%";
         windowsInputCode.readOnly = "readonly";
 
-        if (HASTPLUS) {
-          windowsInputCode.value = "cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri \"" + stringify(updateData.desktoptplus_update_url) + "\" -OutFile \"app.asar\"";
-        } else {
-          windowsInputCode.value = "cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri \"" + stringify(updateData.desktop_update_url) + "\" -OutFile \"app.asar\"";
-        }
+        windowsInputCode.value = "cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri \"" + stringify(updateData.desktop_update_url) + "\" -OutFile \"app.asar\"";
         let windowsCodeCopy = document.createElement("button");
         windowsCodeCopy.innerHTML = "COPY";
         windowsCodeCopy.className = "control_button button_tr rg_target_pri";
@@ -496,22 +462,13 @@ window.addEventListener('load', async function () {
         windowsCodeCopy.style.fontFamily = "HUN";
         windowsCodeCopy.style.top = "0px";
 
-
-
-
-
         let appleIH = document.createElement("h2");
         appleIH.style.color = "#9600FF";
         appleIH.innerHTML = "MacOS Users: ";
         appleIH.dataset.content = appleIH.innerHTML;
 
         let appleUI = document.createElement("p");
-        if (HASTPLUS) {
-          appleUI.innerHTML = "1. Download the file found <a href=\"" + stringify(updateData.desktoptplus_update_url) + "\" target=\"_blank\">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click \"Show Package Contents\".<br>4.Open the \"Contents\" folder and then the \"resources\" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!";
-        } else {
-          appleUI.innerHTML = "1. Download the file found <a href=\"" + stringify(updateData.desktop_update_url) + "\" target=\"_blank\">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click \"Show Package Contents\".<br>4.Open the \"Contents\" folder and then the \"resources\" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!";
-        }
-
+        appleUI.innerHTML = "1. Download the file found <a href=\"" + stringify(updateData.desktop_update_url) + "\" target=\"_blank\">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click \"Show Package Contents\".<br>4.Open the \"Contents\" folder and then the \"resources\" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!";
 
         mainContent.appendChild(windowsIH);
         mainContent.appendChild(windowsUI);
@@ -525,21 +482,7 @@ window.addEventListener('load', async function () {
           navigator.clipboard.writeText(windowsInputCode.value);
           document.getElementById("windowsCodeCopy").innerHTML = "COPIED!";
         })
-      } else if (PLATFORM == "browser") {
-        let browserIH = document.createElement("h2");
-        browserIH.style.color = "#FF9600";
-        browserIH.innerHTML = "Browser Users: ";
-        browserIH.dataset.content = browserIH.innerHTML;
-
-        let browserUI = document.createElement("p");
-        browserUI.innerHTML = "1. Download the file found <a href=\"" + stringify(updateData.browser_update_url) + "\" target=\"_blank\">here</a>.<br>2. Open your browser's extension page. On Chrome the url is chrome://extensions.<br>3. Scroll down to Source. There should be a file path.<br>4. Click on the file path, it should open up a folder.<br>5. Replace preload.js with the file you downloaded.<br>6. Your client is now updated!";
-        mainContent.appendChild(browserIH);
-        mainContent.appendChild(browserUI);
-        mainDiv.appendChild(document.createElement("p")).appendChild(mainContent);
-
-
       }
-
 
       let buttonHolder = document.createElement("div");
       buttonHolder.className = "oob_button_holder flex-row ns";
@@ -578,7 +521,5 @@ window.addEventListener('load', async function () {
     }
   }
 
-
-
   loadedObserver.observe(document.body, config);
-})
+});
