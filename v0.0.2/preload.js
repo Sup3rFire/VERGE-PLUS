@@ -9,19 +9,29 @@ const glicko2 = require("glicko2-lite");
 const cache = new Map();
 
 // Some useful functions
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
 async function getData(req) {
-  let cacheData = cache.get(req);
-  if (!!cacheData) {
-    cacheData = await Promise.resolve(cacheData);
-    if (cacheData.success && new Date().getTime() < cacheData.cache.cached_until)
-      return cacheData;
+  const url = "https://ch.tetr.io/api/";
+  const timeoutDelay = 1000;
+  try {
+    let cacheData = cache.get(req);
+    if (!!cacheData) {
+      cacheData = await Promise.resolve(cacheData);
+      if (cacheData.success && new Date().getTime() < cacheData.cache.cached_until)
+        return cacheData;
+    }
+    let data = (fetch(url + req)).then((res) => res.json());
+
+    cache.set(req, data);
+
+    return data;
+  } catch (error) {
+    console.log("Retrying request in " + timeoutDelay + "ms.");
+    await delay(timeoutDelay);
+    return await getData(req);
   }
-  const url = "https://ch.tetr.io/api/"
-  let data = (fetch(url + req)).then((res) => res.json());
 
-  cache.set(req, data);
-
-  return data;
 }
 function stringify(json) {
   let data = JSON.stringify(json);
