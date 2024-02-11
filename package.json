@@ -1,4 +1,5 @@
 {
+  "version": "0.0.2",
   "scripts": {
     "build": "node build.js"
   },
@@ -6,5 +7,9 @@
     "@electron/asar": "^3.2.8",
     "esbuild": "^0.19.12",
     "glicko2-lite": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "typescript": "^5.3.3"
   }
 }

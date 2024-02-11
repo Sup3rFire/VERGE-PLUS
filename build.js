@@ -1,19 +1,50 @@
 const asar = require("@electron/asar");
 const esbuild = require("esbuild");
-const fs = require("fs");
+const fs = require("fs/promises");
+const { version } = require("./package.json");
+const manifest = require("./src/browser/manifest.json");
+manifest.version = version;
 
-asar.extractAll("original.asar", "dist");
+(async () => {
+  let dir = "dist/browser";
+  await fs.mkdir(dir, { recursive: true });
+  await Promise.all([
+    fs.writeFile(
+      dir + "/preload.js",
+      esbuild.buildSync({
+        bundle: true,
+        minify: true,
+        entryPoints: ["./src/main.ts"],
+        write: false,
+        define: {
+          VERSION: JSON.stringify(version),
+          PLATFORM: JSON.stringify("browser"),
+        },
+      }).outputFiles[0].contents
+    ),
+    fs.writeFile(dir + "/manifest.json", JSON.stringify(manifest)),
+  ]);
+})();
 
-// esbuild --bundle --minify --outdir=dist
-fs.appendFileSync("dist/preload.js", "\n");
-fs.appendFileSync(
-  "dist/preload.js",
-  esbuild.buildSync({
-    bundle: true,
-    minify: true,
-    entryPoints: [process.argv.at(-1)],
-    write: false,
-  }).outputFiles[0].contents
-);
+(async () => {
+  let dir = "dist/desktop";
+  asar.extractAll("src/original.asar", dir);
 
-asar.createPackage("dist/", "app.asar");
+  // esbuild --bundle --minify --outdir=dist
+  await fs.appendFile(dir + "/preload.js", "\n");
+  await fs.appendFile(
+    dir + "/preload.js",
+    esbuild.buildSync({
+      bundle: true,
+      minify: true,
+      entryPoints: ["./src/main.ts"],
+      write: false,
+      define: {
+        VERSION: JSON.stringify(version),
+        PLATFORM: JSON.stringify("desktop"),
+      },
+    }).outputFiles[0].contents
+  );
+
+  asar.createPackage(dir, "dist/app.asar");
+})();

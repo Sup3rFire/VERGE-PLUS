@@ -1,17 +1,13 @@
 // VERGE
 
-// Config
-const VERSION = "0.0.2";
-const PLATFORM = "desktop";
-
-const glicko2 = require("glicko2-lite");
+import glicko2 from "glicko2-lite";
 
 const cache = new Map();
 
 // Some useful functions
-const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-async function getData(req) {
+async function getData(req: string) {
   const url = "https://ch.tetr.io/api/";
   const timeoutDelay = 1000;
   try {
@@ -32,12 +28,12 @@ async function getData(req) {
     return await getData(req);
   }
 }
-function stringify(json) {
+function stringify(json: any) {
   let data = JSON.stringify(json);
   return data.replace(/"/g, "");
 }
 
-function calculatePercentile(value, array) {
+function calculatePercentile(value: number, array: number[]) {
   for (let i = 0; i < array.length; i++) {
     if (value < array[i]) {
       return (100 * i) / array.length;
@@ -49,7 +45,7 @@ function calculatePercentile(value, array) {
 // We breaching the mainframe with this one 🔥🔥🔥
 // console.log("Injected Verge sucessfully");
 
-function glickoToTR(glicko, rd) {
+function glickoToTR(glicko: number, rd: number) {
   let divisor =
     1 +
     Math.pow(
@@ -81,7 +77,7 @@ window.addEventListener("load", async function () {
       return;
     }
 
-    let usernameNode;
+    let usernameNode: Node;
 
     //// console.log(mutations);
     for (let i = 0; i < mutations.length; i++) {
@@ -95,14 +91,14 @@ window.addEventListener("load", async function () {
       }
     }
 
-    function addTrait(value, description, color, id) {
+    function addTrait(value: string, description: string, color: string = "", id: string = "") {
       // Create the tag
       let tag = document.createElement("div");
       tag.className = "tetra_tag_gametime";
       tag.title = description;
       tag.style.color = color;
       tag.innerHTML = value;
-      id ? (tag.id = id) : (tag.id = "");
+      tag.id = id;
 
       // Add it once, to measure width
       document
@@ -144,7 +140,10 @@ window.addEventListener("load", async function () {
           document.getElementsByClassName("tetra_tag_holder")[
             document.getElementsByClassName("tetra_tag_holder").length - 1
           ];
-        insertAfterThis.parentNode.insertBefore(tetraTagDiv, insertAfterThis.nextSibling);
+        (insertAfterThis.parentNode as ParentNode).insertBefore(
+          tetraTagDiv,
+          insertAfterThis.nextSibling
+        );
         // Add two line break elements for spacing
         document
           .getElementsByClassName("tetra_tag_holder")
@@ -187,7 +186,7 @@ window.addEventListener("load", async function () {
         "loading"
       );
 
-      let user = usernameNode.textContent.toLowerCase();
+      let user = (usernameNode.textContent as string).toLowerCase();
       // console.log(user)
       // Get the user's data
       let [mainUserData, selfUserData] = await Promise.all([
@@ -209,14 +208,15 @@ window.addEventListener("load", async function () {
 
       if (!tlData.success || !mainUserData.success || !mainUserDataHistory.data.records.length) {
         console.warn("User data is either non-existent or could not be fetched.");
-        document.getElementById("loading").textContent = "USER TETRA LEAGUE DATA CANNOT BE FOUND";
-        document.getElementById("loading").title =
+        (document.getElementById("loading") as HTMLElement).textContent =
+          "USER TETRA LEAGUE DATA CANNOT BE FOUND";
+        (document.getElementById("loading") as HTMLElement).title =
           "Party's over. . . This can happen if the user hasn't played any tetra league games.";
         return;
       }
 
-      let mainUserMatchHistory = [];
-      let mainUserOpponents = [];
+      let mainUserMatchHistory: boolean[] = [];
+      let mainUserOpponents: any[] = [];
       for (let i = 0; i < mainUserDataHistory.data.records.length; i++) {
         if (mainUserDataHistory.data.records[i].endcontext[0].username == user) {
           mainUserMatchHistory.push(true);
@@ -239,10 +239,10 @@ window.addEventListener("load", async function () {
 
       tStart = Date.now();
 
-      let pps = [];
-      let apm = [];
-      let vs = [];
-      let tr = [];
+      let pps: number[] = [];
+      let apm: number[] = [];
+      let vs: number[] = [];
+      let tr: number[] = [];
 
       // -0.4055 is the secret formula ;)
       let skillGroupRange = Math.round(
@@ -361,7 +361,7 @@ window.addEventListener("load", async function () {
       let vengeanceScore = vengeance / (vengeance + badMood);
 
       // Remove loading tag
-      document.getElementById("loading").remove();
+      (document.getElementById("loading") as HTMLElement).remove();
 
       // Glicko Calculation
       if (mainUserData.data.user.league.glicko && selfUserData.data.user.league.glicko) {
@@ -412,7 +412,6 @@ window.addEventListener("load", async function () {
             "This user tends to lose if they won their previous match. (Winrate " +
               (100 - overConfidentScore * 100).toFixed(precision) +
               "%)",
-            1,
             "#f4b6b3"
           );
         } else {
@@ -457,7 +456,7 @@ window.addEventListener("load", async function () {
       }
       // console.log("This user's winrate is " + (100 * wins / 9).toFixed(precision) + "%.");
 
-      if (calculatePercentile(userPps, pps).toFixed(precision) > 75) {
+      if (Number(calculatePercentile(userPps, pps).toFixed(precision)) > 75) {
         addTrait(
           "HIGH PPS",
           "This user has a high average PPS compared to other players (Top " +
@@ -465,7 +464,7 @@ window.addEventListener("load", async function () {
             " %)",
           "#b6b3f4"
         );
-      } else if (calculatePercentile(userPps, pps).toFixed(precision) < 25) {
+      } else if (Number(calculatePercentile(userPps, pps).toFixed(precision)) < 25) {
         addTrait(
           "LOW PPS",
           "This user has a low average PPS compared to other players (Bottom " +
@@ -474,7 +473,7 @@ window.addEventListener("load", async function () {
           "#f4b6b3"
         );
       }
-      if (calculatePercentile(userApm, apm).toFixed(precision) > 75) {
+      if (Number(calculatePercentile(userApm, apm).toFixed(precision)) > 75) {
         addTrait(
           "HIGH APM",
           "This user has a high average APM compared to other players (Top " +
@@ -482,7 +481,7 @@ window.addEventListener("load", async function () {
             " %)",
           "#b6b3f4"
         );
-      } else if (calculatePercentile(userApm, apm).toFixed(precision) < 25) {
+      } else if (Number(calculatePercentile(userApm, apm).toFixed(precision)) < 25) {
         addTrait(
           "LOW APM",
           "This user has a low average APM compared to other players (Bottom " +
@@ -491,7 +490,7 @@ window.addEventListener("load", async function () {
           "#f4b6b3"
         );
       }
-      if (calculatePercentile(userVs, vs).toFixed(precision) > 75) {
+      if (Number(calculatePercentile(userVs, vs).toFixed(precision)) > 75) {
         addTrait(
           "HIGH VS",
           "This user has a high average VS compared to other players (Top " +
@@ -499,7 +498,7 @@ window.addEventListener("load", async function () {
             " %)",
           "#b6b3f4"
         );
-      } else if (calculatePercentile(userVs, vs).toFixed(precision) < 25) {
+      } else if (Number(calculatePercentile(userVs, vs).toFixed(precision)) < 25) {
         addTrait(
           "LOW VS",
           "This user has a low average VS compared to other players (Bottom " +
@@ -722,16 +721,12 @@ window.addEventListener("load", async function () {
             : undefined;
 
         playstyleWinrate[mainPlaystyle].played++;
-        Number.isInteger(secondaryPlaystyle)
-          ? playstyleWinrate[secondaryPlaystyle].played++
-          : "mrow" == "mrow";
+        secondaryPlaystyle && playstyleWinrate[secondaryPlaystyle].played++;
 
         // If the main user won against this user...
         if (mainUserMatchHistory[i]) {
           playstyleWinrate[mainPlaystyle].wins++;
-          Number.isInteger(secondaryPlaystyle)
-            ? playstyleWinrate[secondaryPlaystyle].wins++
-            : "mrow" == "mrow";
+          secondaryPlaystyle && playstyleWinrate[secondaryPlaystyle].wins++;
         }
       }
       // TODO: Optimize it. Too bad!
@@ -762,12 +757,11 @@ window.addEventListener("load", async function () {
         }
       }
 
-      Number.isInteger(secondaryPlaystyle)
-        ? addTrait(
-            descriptions[secondaryPlaystyle].title,
-            descriptions[secondaryPlaystyle].description
-          )
-        : "nya" == "nya";
+      secondaryPlaystyle &&
+        addTrait(
+          descriptions[secondaryPlaystyle].title,
+          descriptions[secondaryPlaystyle].description
+        );
 
       addTrait(descriptions[mainPlaystyle].title, descriptions[mainPlaystyle].description);
       // console.log("User statistics calculated in " + (Date.now() - tStart) / 1000 + " seconds!")
@@ -777,9 +771,9 @@ window.addEventListener("load", async function () {
   });
 
   // This detects when the page is loaded
-  dialogsObserver.observe(dialogsNode, config);
+  dialogsObserver.observe(dialogsNode as HTMLElement, config);
 
-  let loadedObserver = new MutationObserver((mutations) => {
+  var loadedObserver = new MutationObserver((mutations) => {
     if (
       stringify(updateData.version) != VERSION &&
       document.documentElement.getAttribute("style")
@@ -787,8 +781,10 @@ window.addEventListener("load", async function () {
       // console.log("Page loaded!");
 
       let dialogDiv = document.createElement("div");
-      dialogDiv.style =
-        "display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; background-color: #000D; transition: visibility 0.5s, opacity 0.5s";
+      dialogDiv.setAttribute(
+        "style",
+        "display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; background-color: #000D; transition: visibility 0.5s, opacity 0.5s"
+      );
       dialogDiv.id = "update_overlay";
       document.body.appendChild(dialogDiv);
 
@@ -826,14 +822,21 @@ window.addEventListener("load", async function () {
         let windowsInputCode = document.createElement("input");
         windowsInputCode.autocomplete = "off";
         windowsInputCode.className = "config_input mono_input rg_target_pri";
-        windowsInputCode.style = "left: 2%";
+        windowsInputCode.style.left = "2%";
         windowsInputCode.style.width = "97%";
-        windowsInputCode.readOnly = "readonly";
+        windowsInputCode.readOnly = true;
 
-        windowsInputCode.value =
-          'cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri "' +
-          stringify(updateData.desktop_update_url) +
-          '" -OutFile "app.asar"';
+        if (false) {
+          windowsInputCode.value =
+            'cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri "' +
+            stringify(updateData.desktoptplus_update_url) +
+            '" -OutFile "app.asar"';
+        } else {
+          windowsInputCode.value =
+            'cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri "' +
+            stringify(updateData.desktop_update_url) +
+            '" -OutFile "app.asar"';
+        }
         let windowsCodeCopy = document.createElement("button");
         windowsCodeCopy.innerHTML = "COPY";
         windowsCodeCopy.className = "control_button button_tr rg_target_pri";
@@ -851,10 +854,17 @@ window.addEventListener("load", async function () {
         appleIH.dataset.content = appleIH.innerHTML;
 
         let appleUI = document.createElement("p");
-        appleUI.innerHTML =
-          '1. Download the file found <a href="' +
-          stringify(updateData.desktop_update_url) +
-          '" target="_blank">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click "Show Package Contents".<br>4.Open the "Contents" folder and then the "resources" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!';
+        if (false) {
+          appleUI.innerHTML =
+            '1. Download the file found <a href="' +
+            stringify(updateData.desktoptplus_update_url) +
+            '" target="_blank">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click "Show Package Contents".<br>4.Open the "Contents" folder and then the "resources" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!';
+        } else {
+          appleUI.innerHTML =
+            '1. Download the file found <a href="' +
+            stringify(updateData.desktop_update_url) +
+            '" target="_blank">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click "Show Package Contents".<br>4.Open the "Contents" folder and then the "resources" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!';
+        }
 
         mainContent.appendChild(windowsIH);
         mainContent.appendChild(windowsUI);
@@ -864,10 +874,27 @@ window.addEventListener("load", async function () {
         mainContent.appendChild(appleUI);
         mainDiv.appendChild(document.createElement("p")).appendChild(mainContent);
 
-        document.getElementById("windowsCodeCopy").addEventListener("click", function () {
-          navigator.clipboard.writeText(windowsInputCode.value);
-          document.getElementById("windowsCodeCopy").innerHTML = "COPIED!";
-        });
+        (document.getElementById("windowsCodeCopy") as HTMLElement).addEventListener(
+          "click",
+          function () {
+            navigator.clipboard.writeText(windowsInputCode.value);
+            (document.getElementById("windowsCodeCopy") as HTMLElement).innerHTML = "COPIED!";
+          }
+        );
+      } else if (PLATFORM == "browser") {
+        let browserIH = document.createElement("h2");
+        browserIH.style.color = "#FF9600";
+        browserIH.innerHTML = "Browser Users: ";
+        browserIH.dataset.content = browserIH.innerHTML;
+
+        let browserUI = document.createElement("p");
+        browserUI.innerHTML =
+          '1. Download the file found <a href="' +
+          stringify(updateData.browser_update_url) +
+          '" target="_blank">here</a>.<br>2. Open your browser\'s extension page. On Chrome the url is chrome://extensions.<br>3. Scroll down to Source. There should be a file path.<br>4. Click on the file path, it should open up a folder.<br>5. Replace preload.js with the file you downloaded.<br>6. Your client is now updated!';
+        mainContent.appendChild(browserIH);
+        mainContent.appendChild(browserUI);
+        mainDiv.appendChild(document.createElement("p")).appendChild(mainContent);
       }
 
       let buttonHolder = document.createElement("div");
@@ -886,8 +913,8 @@ window.addEventListener("load", async function () {
       okBtn.innerHTML = "OKI";
       okBtn.id = "okBtn";
       okBtn.onclick = function () {
-        document.getElementById("update_overlay").style.visibility = "hidden";
-        document.getElementById("update_overlay").style.opacity = "0";
+        (document.getElementById("update_overlay") as HTMLElement).style.visibility = "hidden";
+        (document.getElementById("update_overlay") as HTMLElement).style.opacity = "0";
       };
 
       buttonHolder.appendChild(learnMoreBtn);
@@ -900,8 +927,8 @@ window.addEventListener("load", async function () {
   });
   window.onclick = function (event) {
     if (event.target == document.getElementById("update_overlay")) {
-      document.getElementById("update_overlay").style.visibility = "hidden";
-      document.getElementById("update_overlay").style.opacity = "0";
+      (document.getElementById("update_overlay") as HTMLElement).style.visibility = "hidden";
+      (document.getElementById("update_overlay") as HTMLElement).style.opacity = "0";
     }
   };
 
