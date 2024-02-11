@@ -378,7 +378,7 @@ window.addEventListener("load", async function () {
           [[mainUserData.data.user.league.glicko, mainUserData.data.user.league.rd, 1]]
         );
         addTrait(
-          `WIN REWARD: ${max(
+          `WIN REWARD: ${Math.max(
             glickoToTR(winChange.rating, winChange.rd) - selfUserData.data.user.league.rating,
             0
           ).toFixed(2)}TR`,
@@ -386,10 +386,10 @@ window.addEventListener("load", async function () {
           "#b6b3f4"
         );
         addTrait(
-          `LOSE REWARD: ${(min(
-            glickoToTR(lostChange.rating, lostChange.rd) - selfUserData.data.user.league.rating
-          ),
-          0).toFixed(2)}TR`,
+          `LOSE REWARD: ${Math.min(
+            glickoToTR(lostChange.rating, lostChange.rd) - selfUserData.data.user.league.rating,
+            0
+          ).toFixed(2)}TR`,
           "",
           "#f4b6b3"
         );

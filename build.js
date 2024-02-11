@@ -2,7 +2,7 @@ const asar = require("@electron/asar");
 const esbuild = require("esbuild");
 const fs = require("fs");
 
-asar.extractAll("app.asar", "dist");
+asar.extractAll("original.asar", "dist");
 
 // esbuild --bundle --minify --outdir=dist
 fs.appendFileSync("dist/preload.js", "\n");
@@ -16,4 +16,4 @@ fs.appendFileSync(
   }).outputFiles[0].contents
 );
 
-asar.createPackage("dist/", "out.asar");
+asar.createPackage("dist/", "app.asar");
