@@ -1,6 +1,5 @@
 // VERGE+
-const updateURL =
-  "https://raw.githubusercontent.com/Sup3rFire/VERGE-PLUS/main/version?token=GHSAT0AAAAAACMWF2BBTKTDBSOFMDOINS4CZOJ6ITQ";
+const updateURL = "https://raw.githubusercontent.com/Sup3rFire/VERGE-PLUS/main/version";
 
 import glicko2 from "glicko2-lite";
 
@@ -66,17 +65,8 @@ window.addEventListener("load", async function () {
   const config = { attributes: true, childList: true, subtree: true };
 
   async function checkUpdate() {
-    // let data = await (await fetch(updateURL)).json();
-    // return data;
-    return {
-      version: "0.0.2",
-      version_nickname: "QoL Update #1",
-      desktop_update_url:
-        "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.2/app.asar",
-      browser_update_url:
-        "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.2/browser.zip",
-      patchnotes_url: "https://github.com/Sup3rFire/VERGE-PLUS/releases/v0.0.2/",
-    };
+    let data = await (await fetch(updateURL)).json();
+    return data;
   }
   let updateData = await checkUpdate();
 
@@ -838,8 +828,6 @@ window.addEventListener("load", async function () {
         windowsInputCode.style.left = "2%";
         windowsInputCode.style.width = "97%";
         windowsInputCode.readOnly = true;
-
-        console.log(process.cwd(), __dirname);
 
         windowsInputCode.value = `cd "${require("path").join(
           process.cwd(),
