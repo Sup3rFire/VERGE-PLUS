@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "TETR VERGE",
+  "name": "VERGE+",
   "version": "1.0.0",
-  "description": "TETR VERGE for the browser client of TETR.IO",
+  "description": "Analytics for TETR.IO",
   "content_scripts": [
     {
       "matches": ["https://tetr.io/*"],

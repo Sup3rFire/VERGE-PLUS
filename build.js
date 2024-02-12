@@ -1,6 +1,7 @@
 const asar = require("@electron/asar");
 const esbuild = require("esbuild");
 const fs = require("fs/promises");
+const path = require("path");
 const { version } = require("./package.json");
 const manifest = require("./src/browser/manifest.json");
 manifest.version = version;
@@ -28,6 +29,9 @@ const buildOpts = {
     ),
     fs.writeFile(dir + "/manifest.json", JSON.stringify(manifest)),
   ]);
+  require("child_process").execSync("tar acf ../browser.zip *", {
+    cwd: path.resolve(process.cwd(), "dist", "browser"),
+  });
 })();
 
 (async () => {

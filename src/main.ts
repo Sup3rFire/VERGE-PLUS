@@ -1,4 +1,5 @@
-// VERGE
+// VERGE+
+const updateURL = "https://raw.githubusercontent.com/MrMeCoding/TETR-VERGE/main/version";
 
 import glicko2 from "glicko2-lite";
 
@@ -64,7 +65,6 @@ window.addEventListener("load", async function () {
   const config = { attributes: true, childList: true, subtree: true };
 
   async function checkUpdate() {
-    const updateURL = "https://raw.githubusercontent.com/MrMeCoding/TETR-VERGE/main/version";
     let data = await (await fetch(updateURL)).json();
     return data;
   }
@@ -180,7 +180,7 @@ window.addEventListener("load", async function () {
         return;
       }
       addTrait(
-        "TETR.IO VERGE IS LOADING. . .",
+        "VERGE+ IS LOADING. . .",
         "This may take up to 5 seconds depending on your internet connection and TETR.IO API response times.",
         "#b3f4b6",
         "loading"
@@ -794,7 +794,7 @@ window.addEventListener("load", async function () {
       dialogDiv.appendChild(mainDiv);
 
       let header = document.createElement("h1");
-      header.innerHTML = "VERGE NEEDS AN UPDATE";
+      header.innerHTML = "VERGE+ NEEDS AN UPDATE";
       mainDiv.appendChild(header);
 
       let updateNum = document.createElement("h1");

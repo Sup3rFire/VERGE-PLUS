@@ -1,7 +1,7 @@
 {
   "version": "0.0.2",
   "scripts": {
-    "build": "node build.js && tar acf dist/browser.zip dist/browser"
+    "build": "node build.js"
   },
   "dependencies": {
     "@electron/asar": "^3.2.8",
