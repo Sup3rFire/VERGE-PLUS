@@ -1,5 +1,6 @@
 // VERGE+
-const updateURL = "https://raw.githubusercontent.com/MrMeCoding/TETR-VERGE/main/version";
+const updateURL =
+  "https://raw.githubusercontent.com/Sup3rFire/VERGE-PLUS/main/version?token=GHSAT0AAAAAACMWF2BBTKTDBSOFMDOINS4CZOJ6ITQ";
 
 import glicko2 from "glicko2-lite";
 
@@ -65,8 +66,17 @@ window.addEventListener("load", async function () {
   const config = { attributes: true, childList: true, subtree: true };
 
   async function checkUpdate() {
-    let data = await (await fetch(updateURL)).json();
-    return data;
+    // let data = await (await fetch(updateURL)).json();
+    // return data;
+    return {
+      version: "0.0.2",
+      version_nickname: "QoL Update #1",
+      desktop_update_url:
+        "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.2/app.asar",
+      browser_update_url:
+        "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.2/browser.zip",
+      patchnotes_url: "https://github.com/Sup3rFire/VERGE-PLUS/releases/v0.0.2/",
+    };
   }
   let updateData = await checkUpdate();
 
@@ -815,9 +825,12 @@ window.addEventListener("load", async function () {
         windowsIH.innerHTML = "Windows Users: ";
         windowsIH.dataset.content = windowsIH.innerHTML;
 
+        let updateUrl = false ? updateData.desktoptplus_update_url : updateData.desktop_update_url;
+
         let windowsUI = document.createElement("p");
-        windowsUI.innerHTML =
-          "1. Open Windows PowerShell <br>2. Copy the code below and run it in PowerShell. <b><i>Make sure to close TETR.IO first before running code!</b></i><br>3. Reopen TETR.IO. Your client is now updated!";
+        windowsUI.innerHTML = `➔ Open Windows PowerShell.<br>
+➔ Copy the code below and run it in PowerShell. <b><i>Make sure to close TETR.IO first before running the following!</b></i><br>
+➔ VERGE+ is now updated!`;
 
         let windowsInputCode = document.createElement("input");
         windowsInputCode.autocomplete = "off";
@@ -826,17 +839,13 @@ window.addEventListener("load", async function () {
         windowsInputCode.style.width = "97%";
         windowsInputCode.readOnly = true;
 
-        if (false) {
-          windowsInputCode.value =
-            'cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri "' +
-            stringify(updateData.desktoptplus_update_url) +
-            '" -OutFile "app.asar"';
-        } else {
-          windowsInputCode.value =
-            'cd ~; cd .\\AppData\\Local\\Programs\\tetrio-desktop\\resources\\; Invoke-WebRequest -Uri "' +
-            stringify(updateData.desktop_update_url) +
-            '" -OutFile "app.asar"';
-        }
+        console.log(process.cwd(), __dirname);
+
+        windowsInputCode.value = `cd "${require("path").join(
+          process.cwd(),
+          "resources"
+        )}"; Invoke-WebRequest -Uri "${updateUrl}" -OutFile "app.asar"`;
+
         let windowsCodeCopy = document.createElement("button");
         windowsCodeCopy.innerHTML = "COPY";
         windowsCodeCopy.className = "control_button button_tr rg_target_pri";
@@ -854,17 +863,12 @@ window.addEventListener("load", async function () {
         appleIH.dataset.content = appleIH.innerHTML;
 
         let appleUI = document.createElement("p");
-        if (false) {
-          appleUI.innerHTML =
-            '1. Download the file found <a href="' +
-            stringify(updateData.desktoptplus_update_url) +
-            '" target="_blank">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click "Show Package Contents".<br>4.Open the "Contents" folder and then the "resources" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!';
-        } else {
-          appleUI.innerHTML =
-            '1. Download the file found <a href="' +
-            stringify(updateData.desktop_update_url) +
-            '" target="_blank">here</a>.<br>2.Find the TETR.IO Desktop application in the Applications folder in Finder.<br>3.Right click TETR.IO Desktop and click "Show Package Contents".<br>4.Open the "Contents" folder and then the "resources" folder.<br>5. Replace app.asar with the file you downloaded.<br>6. Your client is now updated!';
-        }
+        appleUI.innerHTML = `➔ Download the app.asar found <a href="${updateUrl}" target="_blank" class="lna">here</a>.<br>
+➔ Find the TETR.IO Desktop application in the Applications folder in Finder.<br>
+➔ Right click TETR.IO Desktop and click "Show Package Contents".<br>
+➔ Open the "Contents" folder and then the "resources" folder.<br>
+➔ Replace app.asar with the file you downloaded.<br>
+➔ VERGE+ is now updated!`;
 
         mainContent.appendChild(windowsIH);
         mainContent.appendChild(windowsUI);
@@ -888,10 +892,11 @@ window.addEventListener("load", async function () {
         browserIH.dataset.content = browserIH.innerHTML;
 
         let browserUI = document.createElement("p");
-        browserUI.innerHTML =
-          '1. Download the file found <a href="' +
-          stringify(updateData.browser_update_url) +
-          '" target="_blank">here</a>.<br>2. Open your browser\'s extension page. On Chrome the url is chrome://extensions.<br>3. Scroll down to Source. There should be a file path.<br>4. Click on the file path, it should open up a folder.<br>5. Replace preload.js with the file you downloaded.<br>6. Your client is now updated!';
+        browserUI.innerHTML = `➔ Download <a href="${updateData.browser_update_url}" class="lna">browser.zip</a><br>
+➔ Open your browser's extensions page<br>
+➔ Enable developer mode.<br>
+➔ Drag the downloaded browser.zip file into your browser extensions page.<br>
+➔ VERGE+ is now updated!`;
         mainContent.appendChild(browserIH);
         mainContent.appendChild(browserUI);
         mainDiv.appendChild(document.createElement("p")).appendChild(mainContent);

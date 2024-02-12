@@ -1,7 +1,7 @@
 {
   "version": "0.0.2",
   "version_nickname": "QoL Update #1",
-  "desktop_update_url": "https://github.com/Sup3rFire/TETR-VERGE/releases/download/v0.0.2/app.asar",
-  "browser_update_url": "https://github.com/Sup3rFire/TETR-VERGE/releases/download/v0.0.2/browser.zip",
-  "patchnotes_url": "https://github.com/Sup3rFire/TETR-VERGE/releases/v0.0.2/"
+  "desktop_update_url": "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.2/app.asar",
+  "browser_update_url": "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.2/browser.zip",
+  "patchnotes_url": "https://github.com/Sup3rFire/VERGE-PLUS/releases/v0.0.2/"
 }

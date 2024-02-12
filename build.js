@@ -11,6 +11,7 @@ const buildOpts = {
   minify: true,
   entryPoints: ["./src/main.ts"],
   write: false,
+  external: ["path"],
 };
 
 (async () => {

@@ -1,5 +1,5 @@
 <p align="center">
-  <!-- <img width="80%" src=""> -->
+  <img width="70%" src="images/large.png">
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 
 ### Desktop
 
-- Download [app.asar](https://github.com/Sup3rFire/TETR-VERGE/releases/download/latest/app.asar)
+- Download [app.asar](https://github.com/Sup3rFire/VERGE-PLUS/releases/download/latest/app.asar)
 - Replace `resources/app.asar` in your tetr.io installation folder with the newly downloaded app.asar file.
   - On windows, this directory is `C:\Users\<YOUR USERNAME>\AppData\Local\Programs\tetrio-desktop\resources`
 - Enjoy!
@@ -41,7 +41,7 @@
 > [!IMPORTANT]
 > VERGE+ currently only supports Chromium-based browsers.
 
-- Download [browser.zip](https://github.com/Sup3rFire/TETR-VERGE/releases/download/latest/browser.zip)
+- Download [browser.zip](https://github.com/Sup3rFire/VERGE-PLUS/releases/download/latest/browser.zip)
 - Open your browser's extensions page
   - On Chrome, this is `chrome://extensions`
   - On Brave, this is `brave://extensions`
