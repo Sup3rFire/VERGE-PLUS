@@ -68,7 +68,7 @@ window.addEventListener("load", async function () {
     let data = await (await fetch(updateURL)).json();
     return data;
   }
-  let updateData = await checkUpdate();
+  let updateData = (await checkUpdate().catch(console.error)) || { version: VERSION };
 
   // This detects when the user opens someone's profile
   let dialogsObserver = new MutationObserver((mutations) => {

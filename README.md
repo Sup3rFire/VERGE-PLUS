@@ -27,6 +27,8 @@
 > [!TIP]
 > Hovering over a trait displays additional information!
 
+![](images/dimentio_demo.png)
+
 ## Installation
 
 ### Desktop
