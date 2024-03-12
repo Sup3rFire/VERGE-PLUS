@@ -779,7 +779,6 @@ window.addEventListener("load", async function () {
       document.documentElement.getAttribute("style")
     ) {
       // console.log("Page loaded!");
-
       let dialogDiv = document.createElement("div");
       dialogDiv.setAttribute(
         "style",
@@ -787,53 +786,42 @@ window.addEventListener("load", async function () {
       );
       dialogDiv.id = "update_overlay";
       document.body.appendChild(dialogDiv);
-
       let mainDiv = document.createElement("div");
       mainDiv.style.zIndex = "1999999";
       mainDiv.className = "oob_modal patchnotes wide_modal";
       dialogDiv.appendChild(mainDiv);
-
       let header = document.createElement("h1");
       header.innerHTML = "VERGE+ NEEDS AN UPDATE";
       mainDiv.appendChild(header);
-
       let updateNum = document.createElement("h1");
       updateNum.innerHTML = stringify(updateData.version);
-
       let updateNickname = document.createElement("h6");
       updateNickname.innerHTML = '"' + stringify(updateData.version_nickname) + '"';
-
       let mainContent = document.createElement("div");
       mainContent.className = "dialog_long";
-
       mainContent.appendChild(updateNum);
       mainContent.appendChild(updateNickname);
-
       if (PLATFORM == "desktop") {
         let windowsIH = document.createElement("h2");
         windowsIH.style.color = "#00FF96";
         windowsIH.innerHTML = "Windows Users: ";
         windowsIH.dataset.content = windowsIH.innerHTML;
-
         let updateUrl = false ? updateData.desktoptplus_update_url : updateData.desktop_update_url;
-
         let windowsUI = document.createElement("p");
         windowsUI.innerHTML = `➔ Open Windows PowerShell.<br>
 ➔ Copy the code below and run it in PowerShell. <b><i>Make sure to close TETR.IO first before running the following!</b></i><br>
 ➔ VERGE+ is now updated!`;
-
         let windowsInputCode = document.createElement("input");
         windowsInputCode.autocomplete = "off";
         windowsInputCode.className = "config_input mono_input rg_target_pri";
         windowsInputCode.style.left = "2%";
         windowsInputCode.style.width = "97%";
         windowsInputCode.readOnly = true;
-
-        windowsInputCode.value = `cd "${require("path").join(
-          process.cwd(),
-          "resources"
-        )}"; Invoke-WebRequest -Uri "${updateUrl}" -OutFile "app.asar"`;
-
+        windowsInputCode.value = `➔ Download the app.asar found <a href="${updateUrl}" target="_blank" class="lna">here</a>.<br>
+➔ Open the TETR.IO Desktop installation folder.<br>
+➔ Open the "resources" folder.<br>
+➔ Replace app.asar with the file you downloaded.<br>
+➔ VERGE+ is now updated!`;
         let windowsCodeCopy = document.createElement("button");
         windowsCodeCopy.innerHTML = "COPY";
         windowsCodeCopy.className = "control_button button_tr rg_target_pri";
@@ -844,12 +832,10 @@ window.addEventListener("load", async function () {
         windowsCodeCopy.style.left = "1%";
         windowsCodeCopy.style.fontFamily = "HUN";
         windowsCodeCopy.style.top = "0px";
-
         let appleIH = document.createElement("h2");
         appleIH.style.color = "#9600FF";
         appleIH.innerHTML = "MacOS Users: ";
         appleIH.dataset.content = appleIH.innerHTML;
-
         let appleUI = document.createElement("p");
         appleUI.innerHTML = `➔ Download the app.asar found <a href="${updateUrl}" target="_blank" class="lna">here</a>.<br>
 ➔ Find the TETR.IO Desktop application in the Applications folder in Finder.<br>
@@ -857,7 +843,6 @@ window.addEventListener("load", async function () {
 ➔ Open the "Contents" folder and then the "resources" folder.<br>
 ➔ Replace app.asar with the file you downloaded.<br>
 ➔ VERGE+ is now updated!`;
-
         mainContent.appendChild(windowsIH);
         mainContent.appendChild(windowsUI);
         mainContent.appendChild(windowsInputCode);
@@ -865,7 +850,6 @@ window.addEventListener("load", async function () {
         mainContent.appendChild(appleIH);
         mainContent.appendChild(appleUI);
         mainDiv.appendChild(document.createElement("p")).appendChild(mainContent);
-
         (document.getElementById("windowsCodeCopy") as HTMLElement).addEventListener(
           "click",
           function () {
@@ -878,7 +862,6 @@ window.addEventListener("load", async function () {
         browserIH.style.color = "#FF9600";
         browserIH.innerHTML = "Browser Users: ";
         browserIH.dataset.content = browserIH.innerHTML;
-
         let browserUI = document.createElement("p");
         browserUI.innerHTML = `➔ Download <a href="${updateData.browser_update_url}" class="lna">browser.zip</a><br>
 ➔ Open your browser's extensions page<br>
@@ -889,10 +872,8 @@ window.addEventListener("load", async function () {
         mainContent.appendChild(browserUI);
         mainDiv.appendChild(document.createElement("p")).appendChild(mainContent);
       }
-
       let buttonHolder = document.createElement("div");
       buttonHolder.className = "oob_button_holder flex-row ns";
-
       let learnMoreBtn = document.createElement("div");
       learnMoreBtn.className = "oob_button flex-item";
       learnMoreBtn.innerHTML = "LEARN MORE ABOUT THIS UPDATE";
@@ -900,7 +881,6 @@ window.addEventListener("load", async function () {
       learnMoreBtn.onclick = function () {
         window.open(stringify(updateData.patchnotes_url), "_blank");
       };
-
       let okBtn = document.createElement("div");
       okBtn.className = "oob_button flex-item pri";
       okBtn.innerHTML = "OKI";
@@ -909,12 +889,9 @@ window.addEventListener("load", async function () {
         (document.getElementById("update_overlay") as HTMLElement).style.visibility = "hidden";
         (document.getElementById("update_overlay") as HTMLElement).style.opacity = "0";
       };
-
       buttonHolder.appendChild(learnMoreBtn);
       buttonHolder.appendChild(okBtn);
-
       mainDiv.appendChild(buttonHolder);
-
       loadedObserver.disconnect();
     }
   });

@@ -1,5 +1,5 @@
 {
-  "version": "3",
+  "version": "0.0.3",
   "version_nickname": "Update for TETR.IO Desktop version 9",
   "desktop_update_url": "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.3/app.asar",
   "browser_update_url": "https://github.com/Sup3rFire/VERGE-PLUS/releases/download/v0.0.3/browser.zip",
